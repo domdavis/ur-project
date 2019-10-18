@@ -69,6 +69,8 @@ echo "${overview}" >> "${dest}/README.md"
 sed "s/<OWNER>/${owner}/" "${DIR}/LICENSE" | \
   sed "s/<YEAR>/$(date +"%Y")/" > "${dest}/LICENSE"
 
+sed "s/gobase/${package}/g" "${DIR}/doc.go" > "${dest}/doc.go"
+
 go mod init "bitbucket.org/${username}/${repository}"
 git init
 git remote add origin "git@bitbucket.org:${username}/${repository}.git"

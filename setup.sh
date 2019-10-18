@@ -62,8 +62,8 @@ done
 
 head -n "${README_LENGTH}" "${DIR}/README.md" | \
   sed "s/# Go Base/# ${package}/" | \
-  sed "s/:user/${username}/g" | \
-  sed "s/:repo/${repository}/g" > "${dest}/README.md"
+  sed "s/idomdavis/${username}/g" | \
+  sed "s/gobase/${repository}/g" > "${dest}/README.md"
 echo "${overview}" >> "${dest}/README.md"
 
 sed "s/<OWNER>/${owner}/" "${DIR}/LICENSE" | \

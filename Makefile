@@ -4,7 +4,6 @@ all: clean build test vet lint
 
 ci: all report
 
-
 setup:
 	go get -u golang.org/x/lint/golint
 	go get -u golang.org/x/tools/cmd/cover

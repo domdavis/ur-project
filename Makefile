@@ -2,7 +2,7 @@ LINTER_VERSION=1.21.0
 
 all: clean build test vet lint
 
-ci: env setup all report
+ci: all report
 
 
 setup:

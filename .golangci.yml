@@ -37,12 +37,16 @@ issues:
         - gosec
         - wsl
         - funlen
+        - gomnd
     - text: "weak cryptographic primitive"
       linters:
         - gosec
     - text: "G104"
       linters:
         - gosec
+    - text: "Magic number: 1"
+      linters:
+        - gomnd
   exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0

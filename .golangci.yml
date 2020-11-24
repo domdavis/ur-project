@@ -26,6 +26,8 @@ linters:
     - scopelint
     - prealloc
     - typecheck
+    - exhaustivestruct
+    - gofumpt
 
 issues:
   exclude-rules:
@@ -38,6 +40,8 @@ issues:
         - wsl
         - funlen
         - gomnd
+        - gocognit
+
     - text: "weak cryptographic primitive"
       linters:
         - gosec

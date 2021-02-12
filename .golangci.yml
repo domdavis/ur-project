@@ -28,6 +28,7 @@ linters:
     - typecheck
     - exhaustivestruct
     - gofumpt
+    - gci
 
 issues:
   exclude-rules:

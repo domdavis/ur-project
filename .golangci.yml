@@ -25,10 +25,11 @@ linters:
     - gochecknoglobals
     - scopelint
     - prealloc
-    - typecheck
     - exhaustivestruct
     - gofumpt
     - gci
+    - forbidigo
+    - nlreturn
 
 issues:
   exclude-rules:

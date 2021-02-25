@@ -44,6 +44,7 @@ issues:
         - gomnd
         - gocognit
         - paralleltest
+        - goconst
 
     - text: "weak cryptographic primitive"
       linters:

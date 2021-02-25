@@ -43,6 +43,7 @@ issues:
         - funlen
         - gomnd
         - gocognit
+        - paralleltest
 
     - text: "weak cryptographic primitive"
       linters:

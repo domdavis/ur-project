@@ -36,6 +36,7 @@ issues:
     - path: _test\.go
       linters:
         - gocyclo
+        - cyclop
         - errcheck
         - dupl
         - gosec

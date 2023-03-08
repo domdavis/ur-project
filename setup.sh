@@ -1,32 +1,49 @@
 #!/usr/bin/env bash
 
-DEFAULT_USER=idomdavis
+DEFAULT_USER="idomdavis"
 DEFAULT_OWNER="Dom Davis"
-README_LENGTH=8
 
-FILES=(
-    ".gitignore"
-    ".golangci.yml"
-    "bitbucket-pipelines.yml"
-    "Makefile"
-)
+choose() {
+  PS3="${1}: "
+  files=("${2}/"*)
+  select file in "${files[@]}"; do
+      if [[ -z $file ]]; then
+          printf "Please select a valid %s" "${1}" >&2
+      else
+          break
+      fi
+  done
+  echo "${file}"
+}
 
 CWD=$(pwd -P)
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-PACKAGE=$(basename "${CWD}")
+PROJECT=$(basename "${CWD}")
 
-printf "Package Location: (default %s): " "${CWD}"
+root="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+cd "${root}" || exit
+
+printf "Project Location: (default %s): " "${CWD}"
 read -r dest
 
 if [ -z "${dest}" ]; then
   dest="${CWD}"
 fi
 
-printf "Package name: (default: %s): " "${PACKAGE}"
-read -r package
+mkdir -p "${dest}" || exit
+cd "${dest}" || exit
 
-if [ -z "${package}" ]; then
-  package="${PACKAGE}"
+printf "Project name: (default: %s): " "${PROJECT}"
+read -r project
+
+if [ -z "${project}" ]; then
+  project="${PROJECT}"
+fi
+
+printf "Package owner (default %s): " "${DEFAULT_OWNER}"
+read -r owner
+
+if [ -z "${owner}" ]; then
+  owner="${DEFAULT_OWNER}"
 fi
 
 printf "Bitbucket username (default %s): " "${DEFAULT_USER}"
@@ -36,46 +53,42 @@ if [ -z "${username}" ]; then
   username="${DEFAULT_USER}"
 fi
 
-printf "Bitbucket repository (default %s): " "${package//[[space:]]/}"
+printf "Bitbucket repository (default %s): " "${project//[[space:]]/}"
 read -r repository
 
 if [ -z "${repository}" ]; then
-  repository="${package//[[space:]]/}"
+  repository="${project//[[space:]]/}"
 fi
 
-printf "Bitbucket owner (default %s): " "${DEFAULT_OWNER}"
-read -r owner
+git init || exit
+git remote add origin "git@bitbucket.org:${username}/${repository}.git" || exit
+cd "${root}" || exit
 
-if [ -z "${owner}" ]; then
-  owner="${DEFAULT_OWNER}"
-fi
+license=$(choose "License" "license")
+type=$(choose "Project type" "project")
 
 printf "Package overview: "
 read -r overview
 
-mkdir -p "${dest}"
+sed "s/{YEAR}/$(date +"%Y")/" "${license}" | \
+  sed "s/{OWNER}/${owner}/g" >> "${dest}/LICENCE" || exit
+
+find "${type}/files" ! -name files > tmp
+while IFS= read -r file
+do
+  sed "s/{PROJECT}/${project}/g" "${file}" | \
+      sed "s/{OWNER}/${owner}/g" | \
+      sed "s/{USERNAME}/${username}/g" | \
+      sed "s/{REPOSITORY}/${repository}/g" | \
+      sed "s/{OVERVIEW}/${overview}/g" >> "${dest}/$(basename "${file}")" || exit
+done < tmp
+rm tmp
+
+cd "${type}" || exit
+./setup.sh "${project}" "${username}" "${repository}" "${dest}" || exit
+
 cd "${dest}" || exit
-
-for file in "${FILES[@]}"; do
-  cp "${DIR}/${file}" "${dest}/${file}"
-done
-
-head -n "${README_LENGTH}" "${DIR}/README.md" | \
-  sed "s/# Go Base/# ${package}/" | \
-  sed "s/idomdavis/${username}/g" | \
-  sed "s/gobase/${repository}/g" > "${dest}/README.md"
-echo "${overview}" >> "${dest}/README.md"
-
-sed "s/<OWNER>/${owner}/" "${DIR}/LICENSE" | \
-  sed "s/<YEAR>/$(date +"%Y")/" > "${dest}/LICENSE"
-
-sed "s/gobase/${package}/g" "${DIR}/doc.go" > "${dest}/doc.go"
-
-go mod init "bitbucket.org/${username}/${repository}"
-git init
-git remote add origin "git@bitbucket.org:${username}/${repository}.git"
-git add .
+git add . || exit
 
 cd "${CWD}" || exit
-
 echo "Done"

@@ -1,0 +1,29 @@
+{
+  "executionRoleArn": "arn:aws:iam::AWS_ID:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/CLUSTER",
+          "awslogs-region": "AWS_REGION",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "entryPoint": [],
+      "command": [
+        "SERVICE_COMMAND"
+      ],
+      "image": "AWS_ID.dkr.ecr.AWS_REGION.amazonaws.com/IMAGE",
+      "essential": true,
+      "name": "SERVICE_NAME"
+    }
+  ],
+  "memory": "SERVICE_MEMORY",
+  "family": "FAMILY_NAME",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "networkMode": "awsvpc",
+  "cpu": "SERVICE_CPU"
+}

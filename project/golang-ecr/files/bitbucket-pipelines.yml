@@ -1,0 +1,78 @@
+image:
+  name: davisd/go
+
+definitions:
+  steps:
+    - step: &build
+        name: Build
+        script:
+          - make ci
+        artifacts:
+          - "$BINARY"
+    - step: &push
+        name: Push to ECR
+        caches:
+          - docker
+        services:
+          - docker
+    - step: &deploy
+        name: Deploy to Fargate
+        caches:
+          - docker
+        script:
+          - sed -i "s|AWS_ID|$AWS_ID|g" task-definition.json
+          - sed -i "s|AWS_REGION|$AWS_REGION|g" task-definition.json
+          - sed -i "s|CLUSTER|$CLUSTER|g" task-definition.json
+          - sed -i "s|IMAGE|$IMAGE|g" task-definition.json
+          - sed -i "s|FAMILY_NAME|$FAMILY_NAME|g" task-definition.json
+          - sed -i "s|SERVICE_NAME|$BINARY|g" task-definition.json
+          - sed -i "s|SERVICE_MEMORY|$SERVICE_MEMORY|" task-definition.json
+          - sed -i "s|SERVICE_CPU|$SERVICE_CPU|" task-definition.json
+          - sed -i "s|\"SERVICE_COMMAND\"|$SERVICE_COMMAND|" task-definition.json
+          - pipe: atlassian/aws-ecs-deploy:1.3.0
+            variables:
+              CLUSTER_NAME: $CLUSTER
+              SERVICE_NAME: $SERVICE_NAME
+              TASK_DEFINITION: "task-definition.json"
+        services:
+          - docker
+
+pipelines:
+  branches:
+    ISSUE-*:
+      - step: *build
+      - step:
+          <<: *push
+          deployment: ecr-dev
+          script:
+            - make docker
+            - pipe: atlassian/aws-ecr-push-image:1.2.1
+              variables:
+                IMAGE_NAME: "$IMAGE"
+                TAGS: $BITBUCKET_BRANCH dev
+    main:
+      - step: *build
+      - step:
+          <<: *push
+          deployment: ecr-main
+          script:
+            - make docker
+            - pipe: atlassian/aws-ecr-push-image:1.2.1
+              variables:
+                IMAGE_NAME: "$IMAGE"
+                TAGS: "main"
+  tags:
+    v*:
+      - step: *build
+      - step:
+          <<: *push
+          deployment: ecr-latest
+          script:
+            - make docker
+            - pipe: atlassian/aws-ecr-push-image:1.2.1
+              variables:
+                IMAGE_NAME: "$IMAGE"
+                TAGS: $BITBUCKET_TAG latest
+      - step:
+          <<: *deploy
+          deployment: ecs
